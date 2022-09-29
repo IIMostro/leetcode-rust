@@ -1,0 +1,12 @@
+[package]
+name = "leetcode-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tracing = "0.1.35"
+tracing-subscriber = "0.3.14"
+anyhow = "1.0.58"
+rand = "0.8.5"
