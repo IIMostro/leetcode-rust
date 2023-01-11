@@ -1,10 +1,14 @@
 extern crate rand;
 
+use std::borrow::{Borrow, BorrowMut};
+use std::cell::RefCell;
 use std::cmp::max;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::ops::Index;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use rand::distributions::uniform::SampleBorrow;
 
 use rand::Rng;
 use tracing::info;
@@ -30,8 +34,11 @@ fn main() -> anyhow::Result<()> {
 
     // let result = Solution::longest_palindrome(String::from("babad"));
 
-    let result = Solution::three_sum(vec![-1, 0, 1, 2, -1, -4]);
-    // info!("{}", result);
+    // let result = Solution::three_sum(vec![-1, 0, 1, 2, -1, -4]);
+
+
+    let result = Solution::max_chunks_to_sorted(vec![1, 0, 2, 3, 4]);
+    info!("{}", result);
     Ok(())
 }
 
@@ -47,6 +54,24 @@ impl ListNode {
         ListNode {
             next: None,
             val,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct TreeNode {
+    pub val: i32,
+    pub left: Option<Rc<RefCell<TreeNode>>>,
+    pub right: Option<Rc<RefCell<TreeNode>>>,
+}
+
+impl TreeNode {
+    #[inline]
+    pub fn new(val: i32) -> Self {
+        TreeNode {
+            val,
+            left: None,
+            right: None,
         }
     }
 }
@@ -233,5 +258,64 @@ impl Solution {
             }
         }
         result
+    }
+
+
+    /// 769. 最多能完成排序的块
+    /// https://leetcode.cn/problems/max-chunks-to-make-sorted/
+    pub fn max_chunks_to_sorted(arr: Vec<i32>) -> i32 {
+        let mut arr = arr;
+        let mut res = 0;
+        let mut m = 0;
+        for i in 0..arr.len() {
+            m = max(m, arr.get(i).unwrap().clone());
+            if m == i as i32 {
+                res += 1;
+            }
+        }
+        res
+    }
+
+    /// 2283. 判断一个数的数字计数是否等于数位的值
+    /// https://leetcode.cn/problems/check-if-number-has-equal-digit-count-and-digit-value/
+    pub fn digit_count(num: String) -> bool {
+        let mut map:HashMap<i32, i32> = HashMap::new();
+        let chars = num.as_bytes();
+        if chars.len() == 1 {
+            return chars[0] == 0
+        }
+        for (_, item) in chars.iter().enumerate() {
+            let value = item.clone() as i32 - 48;
+            map.insert(value, map.get(&value).map(|x| x + 1).unwrap_or(1));
+        }
+        for (index, item) in chars.iter().enumerate() {
+            let key = index as i32;
+            let value = item.clone() as i32 - 48;
+            info!("key: {}, value: {}", key, value);
+            info!("map get value: {:?}", map.get(&key).unwrap_or(&0));
+            if map.get(&key).unwrap_or(&0).clone() != value {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+
+    pub fn setup() {
+        tracing_subscriber::registry()
+            // 设置各个模块的日志级别， 格式为sqlx=debug,tower_http=debug
+            .with(tracing_subscriber::fmt::layer())
+            .init();
+    }
+
+    #[test]
+    pub fn test_digit_count(){
+        setup();
+        let flag = Solution::digit_count(String::from("21200"));
+        assert_eq!(flag, true);
     }
 }
